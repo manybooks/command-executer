@@ -11,7 +11,7 @@
 ## インストール
 
 ```bash
-git clone [repository-url]
+git clone https://github.com/manybooks/command-executer.git
 cd command-executer
 npm install
 npm run build
