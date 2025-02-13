@@ -106,11 +106,13 @@ class CommandExecuterServer {
           };
         } catch (error: unknown) {
           const errorMessage = error instanceof Error ? error.message : "不明なエラー";
+          // エラーメッセージからコマンドの部分を抽出
+          const cmdError = errorMessage.replace(/^Command failed: /, "");
           return {
             content: [
               {
                 type: "text",
-                text: `コマンド実行エラー: ${errorMessage}`,
+                text: cmdError,
               },
             ],
             isError: true,
