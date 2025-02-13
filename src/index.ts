@@ -84,17 +84,17 @@ class CommandExecuterServer {
         }
 
         try {
-          // 環境変数PATHに/usr/local/binを追加
-          const env = {
-            ...process.env,
-            PATH: `${process.env.PATH}:/usr/local/bin:/opt/homebrew/bin:/Users/hondahiroaki/google-cloud-sdk/bin`,
-            SHELL: process.env.SHELL || "/bin/zsh",
-          };
+          // デバッグ用：環境変数を出力
+          if (command.startsWith("gcloud")) {
+            console.error("Current PATH:", process.env.PATH);
+            console.error("Current SHELL:", process.env.SHELL);
+            console.error("Current USER:", process.env.USER);
+            console.error("Current HOME:", process.env.HOME);
+          }
 
           const { stdout, stderr } = await execAsync(command, {
             timeout: 5000, // 5秒でタイムアウト
             maxBuffer: 1024 * 1024, // 1MB
-            env,
           });
           return {
             content: [
