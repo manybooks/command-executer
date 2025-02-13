@@ -7,6 +7,7 @@
 - 設定ファイルで指定されたコマンドのみを実行可能
 - コマンドの引数は制限なし
 - セキュリティを考慮した実装
+- 環境変数の自動設定（PATH、SHELL）
 
 ## インストール
 
@@ -29,7 +30,7 @@ Claude Desktopの設定ファイル（`~/Library/Application Support/Claude/clau
       "args": ["/path/to/command-executer/build/index.js"],
       "disabled": false,
       "autoApprove": ["execute_command"],
-      "approvedCommands": ["ls", "pwd", "echo", "touch", "cd", "python", "python3"]
+      "approvedCommands": ["ls", "pwd", "echo", "python"]
     }
   }
 }
@@ -41,11 +42,11 @@ Claude Desktopの設定ファイル（`~/Library/Application Support/Claude/clau
 - `args`: サーバーの実行ファイルへのパス
 - `disabled`: サーバーを無効にするかどうか
 - `autoApprove`: 自動承認するツール（`execute_command`を指定）
-- `approvedCommands`: 実行を許可するコマンドのリスト
+- `approvedCommands`: 実行を許可するコマンドのリスト（シンプルな文字列配列）
 
 ### 許可コマンドの追加
 
-`approvedCommands`配列に実行を許可したいコマンドを追加します。例：
+`approvedCommands`配列に実行を許可したいコマンドを追加します：
 
 ```json
 "approvedCommands": [
@@ -67,11 +68,20 @@ python script.py --arg1 value1
 echo "Hello, World!"
 ```
 
+## 実行環境
+
+サーバーは以下の環境変数を自動的に設定します：
+
+- `PATH`: システムのPATHに`/usr/local/bin`と`/opt/homebrew/bin`を追加
+- `SHELL`: システムのデフォルトシェル（未設定の場合は`/bin/zsh`）
+
+これにより、Homebrewでインストールされたコマンドなども正しく実行できます。
+
 ## セキュリティ
 
 - 許可されたコマンドのみ実行可能
-- コマンド実行時のタイムアウトと最大バッファサイズを設定
-- エラー時は詳細なメッセージを表示
+- コマンド実行時のタイムアウト（5秒）と最大バッファサイズ（1MB）を設定
+- エラー時は簡潔なエラーメッセージを表示
 
 ## 開発
 

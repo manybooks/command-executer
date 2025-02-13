@@ -84,9 +84,17 @@ class CommandExecuterServer {
         }
 
         try {
+          // 環境変数PATHに/usr/local/binを追加
+          const env = {
+            ...process.env,
+            PATH: `${process.env.PATH}:/usr/local/bin:/opt/homebrew/bin`,
+            SHELL: process.env.SHELL || "/bin/zsh",
+          };
+
           const { stdout, stderr } = await execAsync(command, {
             timeout: 5000, // 5秒でタイムアウト
             maxBuffer: 1024 * 1024, // 1MB
+            env,
           });
           return {
             content: [
@@ -102,7 +110,7 @@ class CommandExecuterServer {
             content: [
               {
                 type: "text",
-                text: `コマンド実行エラー: ${errorMessage}\nセキュリティ上の理由で一部のコマンドは実行できない場合があります。`,
+                text: `コマンド実行エラー: ${errorMessage}`,
               },
             ],
             isError: true,
