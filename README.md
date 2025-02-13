@@ -7,12 +7,12 @@
 - 設定ファイルで指定されたコマンドのみを実行可能
 - コマンドの引数は制限なし
 - セキュリティを考慮した実装
-- 環境変数の自動設定（PATH、SHELL）
+- 複数のシェル設定ファイルをサポート
 
 ## インストール
 
 ```bash
-git clone https://github.com/manybooks/command-executer.git
+git clone [repository-url]
 cd command-executer
 npm install
 npm run build
@@ -30,7 +30,11 @@ Claude Desktopの設定ファイル（`~/Library/Application Support/Claude/clau
       "args": ["/path/to/command-executer/build/index.js"],
       "disabled": false,
       "autoApprove": ["execute_command"],
-      "approvedCommands": ["ls", "pwd", "echo", "python"]
+      "approvedCommands": ["ls", "pwd", "echo", "python"],
+      "options": {
+        "shellConfigPaths": ["~/.zshrc", "~/.zshenv"],
+        "shell": "/bin/zsh"
+      }
     }
   }
 }
@@ -43,6 +47,27 @@ Claude Desktopの設定ファイル（`~/Library/Application Support/Claude/clau
 - `disabled`: サーバーを無効にするかどうか
 - `autoApprove`: 自動承認するツール（`execute_command`を指定）
 - `approvedCommands`: 実行を許可するコマンドのリスト（シンプルな文字列配列）
+- `options`: シェル実行に関する設定
+  - `shellConfigPaths`: 読み込むシェル設定ファイルのパス（配列）
+  - `shell`: 使用するシェル（デフォルト: `/bin/zsh`）
+
+### シェル設定
+
+シェル設定ファイルは以下のように指定できます：
+
+```json
+"options": {
+  // 単一の設定ファイル
+  "shellConfigPaths": ["~/.zshrc"],
+
+  // 複数の設定ファイル（順番に読み込まれます）
+  "shellConfigPaths": ["~/.zshenv", "~/.zshrc", "~/.zshrc.local"],
+
+  // デフォルト値
+  // shellConfigPathsが指定されていない場合は["~/.zshrc"]が使用されます
+  // shellが指定されていない場合は"/bin/zsh"が使用されます
+}
+```
 
 ### 許可コマンドの追加
 
@@ -70,12 +95,11 @@ echo "Hello, World!"
 
 ## 実行環境
 
-サーバーは以下の環境変数を自動的に設定します：
+サーバーは設定ファイルで指定されたシェル設定を読み込んでコマンドを実行します：
 
-- `PATH`: システムのPATHに`/usr/local/bin`と`/opt/homebrew/bin`を追加
-- `SHELL`: システムのデフォルトシェル（未設定の場合は`/bin/zsh`）
-
-これにより、Homebrewでインストールされたコマンドなども正しく実行できます。
+1. 指定された順序で全てのシェル設定ファイルを読み込み
+2. 環境変数やエイリアスなどが利用可能な状態でコマンドを実行
+3. 指定されたシェル（デフォルト: `/bin/zsh`）を使用
 
 ## セキュリティ
 

@@ -4,6 +4,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError } from "@modelcontextprotocol/sdk/types.js";
 import { exec } from "child_process";
 import { promisify } from "util";
+import * as fs from "fs";
 import { isCommandApproved } from "./approved-commands.js";
 
 const execAsync = promisify(exec);
@@ -84,17 +85,24 @@ class CommandExecuterServer {
         }
 
         try {
-          // デバッグ用：環境変数を出力
-          if (command.startsWith("gcloud")) {
-            console.error("Current PATH:", process.env.PATH);
-            console.error("Current SHELL:", process.env.SHELL);
-            console.error("Current USER:", process.env.USER);
-            console.error("Current HOME:", process.env.HOME);
-          }
+          // 設定ファイルからシェル設定を読み込む
+          const configPath = process.env.HOME + "/Library/Application Support/Claude/claude_desktop_config.json";
+          const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+          const options = config.mcpServers["command-executer"].options || {};
+          const shell = options.shell || "/bin/zsh";
 
-          const { stdout, stderr } = await execAsync(command, {
+          // シェル設定ファイルのパスを処理
+          const defaultPaths = ["~/.zshrc"];
+          const configPaths = options.shellConfigPaths || defaultPaths;
+          const shellConfigPaths = configPaths.map((path: string) => path.replace("~", process.env.HOME || ""));
+
+          // 全ての設定ファイルを読み込むコマンドを生成
+          const sourceCommands = shellConfigPaths.map((path: string) => `source ${path}`).join(" && ");
+          const shellCommand = `${sourceCommands} && ${command}`;
+          const { stdout, stderr } = await execAsync(shellCommand, {
             timeout: 5000, // 5秒でタイムアウト
-            maxBuffer: 1024 * 1024, // 1MB
+            maxBuffer: 1024 * 1024, // 1MB,
+            shell,
           });
           return {
             content: [
@@ -106,7 +114,6 @@ class CommandExecuterServer {
           };
         } catch (error: unknown) {
           const errorMessage = error instanceof Error ? error.message : "不明なエラー";
-          // エラーメッセージからコマンドの部分を抽出
           const cmdError = errorMessage.replace(/^Command failed: /, "");
           return {
             content: [
