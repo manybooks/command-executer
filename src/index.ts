@@ -87,7 +87,7 @@ class CommandExecuterServer {
           // 環境変数PATHに/usr/local/binを追加
           const env = {
             ...process.env,
-            PATH: `${process.env.PATH}:/usr/local/bin:/opt/homebrew/bin`,
+            PATH: `${process.env.PATH}:/usr/local/bin:/opt/homebrew/bin:/Users/hondahiroaki/google-cloud-sdk/bin`,
             SHELL: process.env.SHELL || "/bin/zsh",
           };
 
